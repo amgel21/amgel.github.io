@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laberinto</title>
+
+    <style type="text/css">
+		body{
+			background-color: gray;
+		}
+		canvas{
+			background-color: rgb(250, 246, 246);
+		}
+	</style>
+</head>
+<body>
+    <canvas id="myCanvas" width="900" height="900"></canvas>
+
+	<script type="text/javascript">
+		const myCanvas = document.getElementById("myCanvas"); 
+		const ctx = myCanvas.getContext("2d");
+
+       
+		var walls = [];
+        var score = 0;
+        var gameOver = false;
+        var timer;
+        var timeLeft = 30;
+        var pause = false;
+        var direction = '';
+        var speed = 5;	
+        var gameOver = true;	
+       
+
+		const kirb =  new Audio("kirby.mp3")
+
+        const Intro = new Audio("kirby-game.mp3")
+        Intro.loop = true;
+        Intro.play;
+
+        const playerImage = new Image();
+        playerImage.src = 'Kirby.png';
+
+        
+        const targetImage = new Image();
+        targetImage.src = 'estrella.png'; 
+
+		class Rectangulo { 
+
+		 	constructor(color,w,h,x,y,speed) {
+
+		 		this.color = color;
+		    	this.h = h;
+		    	this.w = w;
+		    	this.x = x;
+		    	this.y = y;
+		    	this.speed = speed;
+		 	}  
+
+		 	colision(otro) {
+
+		 		if( 
+		 			this.x < otro.x + otro.w && 
+		 			this.x + this.w > otro.x &&  
+		 			this.y < otro.y + otro.h &&   
+		 			this.y + this.h > otro.y
+		 		){
+		 			return true; 
+		 		}
+
+			    return false;
+			}
+
+            
+		}
+		
+		
+		var player = new Rectangulo("red",29, 25,115,100, 5);
+
+		var target = new Rectangulo("yellow",35,20,750,800, null);
+
+	
+
+ // Paredes externas del laberinto
+walls.push(new Rectangulo("grey", 20, 700, 75, 100)); // Pared vertical 1
+walls.push(new Rectangulo("grey", 650, 20, 155, 100)); // Pared horizontal 2
+walls.push(new Rectangulo("grey", 650, 20, 75, 800)); // Pared horizontal 3
+walls.push(new Rectangulo("grey", 20, 700, 790, 100)); // Pared vertical 2
+
+//Paredes Internas del Laberinto
+walls.push(new Rectangulo("grey", 20, 150, 200, 150));
+walls.push(new Rectangulo("grey", 150, 20, 200, 300));
+walls.push(new Rectangulo("grey", 20, 200, 350, 300));
+walls.push(new Rectangulo("grey", 200, 20, 350, 500));
+walls.push(new Rectangulo("grey", 20, 150, 550, 500));
+walls.push(new Rectangulo("grey", 150, 20, 550, 650));
+walls.push(new Rectangulo("grey", 20, 100, 700, 650));
+
+walls.push(new Rectangulo("grey", 20, 100, 100, 200));
+walls.push(new Rectangulo("grey", 100, 20, 150, 250));
+walls.push(new Rectangulo("grey", 20, 150, 300, 200));
+walls.push(new Rectangulo("grey", 150, 20, 350, 350));
+walls.push(new Rectangulo("grey", 20, 100, 400, 400));
+walls.push(new Rectangulo("grey", 100, 20, 450, 450));
+walls.push(new Rectangulo("grey", 20, 150, 500, 500));
+walls.push(new Rectangulo("grey", 150, 20, 550, 550));
+
+walls.push(new Rectangulo("grey", 300, 20, 500, 400));
+walls.push(new Rectangulo("grey", 300, 20, 500, 200));
+walls.push(new Rectangulo("grey", 300, 20, 80, 600));
+walls.push(new Rectangulo("grey", 350, 20, 80, 750));
+walls.push(new Rectangulo("grey", 150, 20, 80, 400));
+walls.push(new Rectangulo("grey", 220, 20, 80, 500));
+walls.push(new Rectangulo("grey", 220, 20, 80, 680));
+walls.push(new Rectangulo("grey", 300, 20, 500, 280));
+walls.push(new Rectangulo("grey", 250, 20, 550, 350));
+
+walls.push(new Rectangulo("grey", 20, 100, 500, 100));
+walls.push(new Rectangulo("grey", 100, 20, 550, 150));
+walls.push(new Rectangulo("grey", 20, 150, 400, 200));
+walls.push(new Rectangulo("grey", 150, 20, 450, 250));
+walls.push(new Rectangulo("grey", 20, 100, 300, 300));
+walls.push(new Rectangulo("grey", 100, 20, 350, 350));
+walls.push(new Rectangulo("grey", 20, 150, 200, 400));
+walls.push(new Rectangulo("grey", 150, 20, 250, 450));
+walls.push(new Rectangulo("grey", 20, 100, 100, 500));
+walls.push(new Rectangulo("grey", 100, 20, 150, 550));
+
+walls.push(new Rectangulo("grey", 20, 150, 180, 660)); 
+walls.push(new Rectangulo("grey", 150, 20, 80, 350)); 
+walls.push(new Rectangulo("grey", 20, 80, 400, 720)); 
+walls.push(new Rectangulo("grey", 20, 80, 330, 720)); 
+walls.push(new Rectangulo("grey", 20, 80, 460, 720)); 
+walls.push(new Rectangulo("grey", 20, 80, 350, 100)); 
+walls.push(new Rectangulo("grey", 20, 80, 600, 520)); 
+walls.push(new Rectangulo("grey", 20, 80, 650, 520)); 
+walls.push(new Rectangulo("grey", 150, 20, 660, 470)); 
+walls.push(new Rectangulo("grey", 150, 20, 550, 700)); 
+walls.push(new Rectangulo("grey", 20, 80, 250, 100)); 
+walls.push(new Rectangulo("grey", 20, 80, 360, 575)); 
+walls.push(new Rectangulo("grey", 20, 70, 580, 750)); 
+walls.push(new Rectangulo("grey", 20, 95, 450, 515));
+walls.push(new Rectangulo("grey", 20, 150,730, 270)); 
+
+
+
+
+		document.addEventListener('keypress',function(e){
+
+			switch(e.keyCode)
+			{
+				case  119:
+					direction = 'up';
+				break;
+
+				case 115:
+					direction = 'down';
+				break;
+
+				case 97:
+					direction = 'left';
+				break;
+
+				case 100:
+					direction = 'right';
+				break;
+
+				case 32:
+				if(pause){
+                            pause=false
+                        } 
+                        else{
+                            pause=true
+                        }  
+
+				break;
+
+			} 
+
+		}) 
+
+		function update(){
+                if(!pause){
+                    switch(direction)
+                {
+                    case 'up':
+                    player.y -= speed;
+                    if(player.y < 0){
+                        player.y = 900;;  
+                        }                   
+                    break;
+                    case 'down':
+                    player.y += speed;
+                        if(player.y > 900){
+                            player.y = 0;;  
+                        }                
+                    break;
+                    case 'left':
+                    player.x -= speed;
+                    if(player.x < 0){
+                        player.x = 900;  
+                        }   
+                    break;
+                    case 'right':
+                    player.x += speed;
+                    if(player.x > 900){
+                        player.x = 0;  
+                        } 
+
+                    break;
+                  
+                }
+                function startGame() {
+   
+    timer = setInterval(function() {
+        if (!gameOver) {
+            timeLeft--;
+           
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
+            ctx.font = "35px Arial";
+            ctx.fillStyle = "black";
+            ctx.fillText("Tiempo: " + timeLeft + "s", 80, 830);
+            ctx.fillText("Score: " + score, 80, 870);
+
+
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                alert("¡Su tiempo se ha acabado!");
+                gameOver = true;
+               
+            }        }
+    }, 1000); 
+
+
+            }
+
+            function resetGame() {
+                score = 0;
+                gameOver = false;
+                timeLeft = 30; 
+                player.x = 100;
+                player.y = 100;
+
+                
+                clearInterval(timer);
+                startGame();
+            }
+                            window.onload = function() {
+                startGame();
+            };
+                
+				if (player.colision(target)) {
+
+				kirb.play();
+               
+
+                alert("¡Ha llegado a la Meta!");
+
+                gameOver = true;
+
+				score++;
+
+                resetGame();
+				}
+                console.log(player.colision(walls))
+
+
+                walls.forEach(function(walls,i,array){
+                    if (player.colision(walls)) {
+
+                    switch(direction)
+                    {
+                        case 'up':
+                            player.y +=speed; 
+                        break;
+                        case 'down':
+                            player.y -=speed;
+                        break;
+                        case 'right':
+                            player.x -=speed;
+                        break;
+                        case 'left':
+                            player.x +=speed;
+                           break;
+                       }
+                    }
+                });
+
+                if (player.colision(walls)) {
+
+                switch(direction)
+                {
+                    case 'up':
+                        player.y +=speed; 
+                    break;
+                    case 'down':
+                        player.y -=speed;
+                    break;
+                    case 'right':
+                        player.x -=speed;
+                    break;
+                    case 'left':
+                        player.x +=speed;
+                       break;
+                   }
+                }
+                }
+
+  
+
+
+            }
+		function paint()
+		
+		{
+			if(pause){
+                    ctx.fillStyle="pink";
+                    ctx.fillRect(0,0,900,900)
+                    ctx.fillStyle="yellow";
+                    ctx.font ="80px Arial";
+                    ctx.fillText("P A U S E:", 100,250)
+                    
+
+                }else{
+                    ctx.fillStyle=" green ";
+                    ctx.fillRect(0,0,900,900)
+                }
+
+            
+            ctx.font = "35px Arial";
+            ctx.fillStyle = "black";
+            ctx.fillText("Timer: " + timeLeft, 660, 95);
+		
+
+
+			ctx.font = "40px Arial"; 
+			ctx.fillStyle="black"; 
+			ctx.fillText(" THE GREAT KIRBOX ADVENTURE ",100,40);
+
+            Intro.play();
+			
+            ctx.font = "20px Arial"; 
+			ctx.fillStyle="blue"; 
+			ctx.fillText(" Start ",100,100);
+
+            /*ctx.fillStyle = "blue";
+            ctx.fillRect(110, 100, 20, 20); // Inicio*/
+
+            ctx.font = "20px Arial"; 
+			ctx.fillStyle="red"; 
+			ctx.fillText(" Finish ", 735,835);
+            /*ctx.fillStyle = "red";
+            ctx.fillRect(750, 800, 20, 20); // Salida*/
+
+            ctx.font = "35px Arial"; 
+			ctx.fillStyle="black"; 
+			ctx.fillText(" Controles: WASD ",100,850);
+
+
+
+			
+                  
+            ctx.drawImage(playerImage, player.x, player.y, player.w, player.h);
+
+            ctx.drawImage(targetImage, target.x, target.y, target.w, target.h);
+
+            
+         
+
+			walls.forEach(function(walls,i,array){
+                    ctx.fillStyle=walls.color;
+                    ctx.fillRect(walls.x,walls.y,walls.w,walls.h)
+                    ctx.strokeRect(walls.x,walls.y,walls.w,walls.h) 
+                });
+
+			update()
+			requestAnimationFrame(paint);
+		}
+
+		requestAnimationFrame(paint); 
+
+        
+
+		window.requestAnimationFrame = (function () {
+		    return window.requestAnimationFrame ||
+		        window.webkitRequestAnimationFrame ||
+		        window.mozRequestAnimationFrame ||
+		        function (callback) {
+		            window.setTimeout(callback, 17);
+		        };
+		}());
+
+    </script>
+</body>
+</html>
